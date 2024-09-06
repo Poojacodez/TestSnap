@@ -6,7 +6,7 @@ from PIL import Image
 app = Flask(__name__)
 
 # Set your OpenAI API key
-openai.api_key = "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"
+openai.api_key = "ur open api key"
 
 @app.route('/')
 def index():
