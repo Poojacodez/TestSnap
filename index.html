@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimodal LLM Testing Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multimodal LLM Testing Tool</h1>
+    <form id="test-case-form" enctype="multipart/form-data">
+        <label for="context">Optional Context (Describe the Product)</label>
+        <textarea id="context" rows="5" placeholder="Enter any additional information..."></textarea>
+
+        <label for="screenshots">Upload Screenshots (Required)</label>
+        <input type="file" id="screenshots" name="screenshots" accept="image/*" multiple required>
+
+        <button type="submit">Describe Testing Instructions</button>
+    </form>
+
+    <h2>Test Case Output</h2>
+    <pre id="output"></pre>
+
+    <script>
+        document.getElementById('test-case-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const contextTextarea = document.getElementById('context');
+            if (contextTextarea.value.trim() === '') {
+                alert('Please enter a context value or leave it empty if not applicable.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('context', contextTextarea.value);
+
+            const screenshotsInput = document.getElementById('screenshots');
+            const files = screenshotsInput.files;
+            if (files.length === 0) {
+                alert('Please select at least one screenshot file.');
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                if (!files[i].type.startsWith('image/')) {
+                    alert('Only image files are allowed.');
+                    return;
+                }
+                if (files[i].size > 1024 * 1024 * 5) { // 5MB file size limit
+                    alert('File size exceeds the 5MB limit.');
+                    return;
+                }
+                formData.append('screenshots', files[i]);
+            }
+
+            try {
+                const response = await fetch('/generate-test-cases', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            }
+        });
+    </script>
+</body>
+</html>
